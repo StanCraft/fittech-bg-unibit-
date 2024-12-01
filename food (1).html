@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Food Category, BMI & Maintenance Calories</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    .container {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 500px;
+    }
+
+    label {
+      font-size: 16px;
+      margin-bottom: 8px;
+      display: block;
+      color: #555;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .results {
+      margin-top: 20px;
+      background-color: #f9f9f9;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .results h2 {
+      margin-top: 0;
+      color: #333;
+    }
+
+    .results p {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .food-quantity {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+    }
+
+    .food-quantity input {
+      width: 50%;
+      margin-right: 10px;
+    }
+
+    .food-quantity label {
+      width: 40%;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Food Category, BMI & Maintenance Calories</h1>
+    <form id="bmiForm">
+      <label for="weight">Weight (kg):</label>
+      <input type="number" id="weight" placeholder="Enter your weight" required>
+      
+      <label for="height">Height (cm):</label>
+      <input type="number" id="height" placeholder="Enter your height" required>
+
+      <label for="age">Age (years):</label>
+      <input type="number" id="age" placeholder="Enter your age" required>
+
+      <label for="gender">Gender:</label>
+      <select id="gender">
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+      </select>
+
+      <label for="activityLevel">Activity Level:</label>
+      <select id="activityLevel">
+        <option value="1.2">Sedentary (little to no exercise)</option>
+        <option value="1.375">Lightly active (light exercise/sports 1-3 days/week)</option>
+        <option value="1.55">Moderately active (moderate exercise/sports 3-5 days/week)</option>
+        <option value="1.725">Very active (hard exercise/sports 6-7 days a week)</option>
+        <option value="1.9">Super active (very hard exercise/sports or physical job)</option>
+      </select>
+
+      <label for="goal">Goal:</label>
+      <select id="goal">
+        <option value="maintain">Maintain weight</option>
+        <option value="lose">Lose weight</option>
+        <option value="gain">Gain weight</option>
+      </select>
+
+      <label for="categories">Select Food Categories:</label>
+      <select id="categories" multiple onchange="updateFoodItems()">
+        <option value="fruit">Fruit</option>
+        <option value="vegetables">Vegetables</option>
+        <option value="meat">Meat</option>
+        <option value="sweets">Sweets</option>
+		<option value="fish">Fish</option>
+		<option value="dairy">Dairy</option>
+		<option value="bakery">Bakery</option>
+		<option value="nuts">Nuts</option>
+      </select>
+
+      <label for="foodItems">Select Food Products:</label>
+      <select id="foodItems" multiple onchange="updateFoodQuantities()">
+      </select>
+
+      <div id="foodQuantities"></div>
+      <button type="button" onclick="calculateBMIandMaintenanceCalories()">Calculate & Show Results</button>
+    </form>
+
+    <div class="results" id="results"></div>
+  </div>
+
+  <script>
+    const foodData = [
+ { FoodCategory: "fruit", FoodItem: "Orange", Cals_per100grams:47 , HealthyIndex:1  },
+ { FoodCategory: "fruit", FoodItem: "Apple", Cals_per100grams:52 , HealthyIndex:1  },
+ { FoodCategory: "fruit", FoodItem: "Banana", Cals_per100grams:96 , HealthyIndex:1  },
+ { FoodCategory: "fruit", FoodItem: "Blueberry", Cals_per100grams:57 , HealthyIndex:1  },
+ { FoodCategory: "fruit", FoodItem: "Raspberry", Cals_per100grams:52 , HealthyIndex:1  },
+ { FoodCategory: "fruit", FoodItem: "Mango", Cals_per100grams:60 , HealthyIndex:1  },
+ { FoodCategory: "fruit", FoodItem: "Pineapple", Cals_per100grams:50 , HealthyIndex:1  },
+ { FoodCategory: "fruit", FoodItem: "Grape", Cals_per100grams:69 , HealthyIndex:1  },
+ { FoodCategory: "vegetables", FoodItem: "Broccoli", Cals_per100grams:34 , HealthyIndex:1  },
+ { FoodCategory: "vegetables", FoodItem: "Carrot", Cals_per100grams:41 , HealthyIndex:1  },
+ { FoodCategory: "vegetables", FoodItem: "Tomato", Cals_per100grams:18 , HealthyIndex:1  },
+ { FoodCategory: "vegetables", FoodItem: "Onion", Cals_per100grams:40 , HealthyIndex:1  },
+ { FoodCategory: "meat", FoodItem: "Chicken", Cals_per100grams:165 , HealthyIndex:2  },
+ { FoodCategory: "meat", FoodItem: "Beef", Cals_per100grams:250 , HealthyIndex:2  },
+ { FoodCategory: "meat", FoodItem: "Pork", Cals_per100grams:231 , HealthyIndex:2  },
+ { FoodCategory: "fish", FoodItem: "Salmon", Cals_per100grams:208 , HealthyIndex:2  },
+{ FoodCategory: "fish", FoodItem: "Cod", Cals_per100grams:82 , HealthyIndex:1  },
+{ FoodCategory: "dairy", FoodItem: "Yogurt", Cals_per100grams:59 , HealthyIndex:1  },
+{ FoodCategory: "dairy", FoodItem: "Cheese", Cals_per100grams:402 , HealthyIndex:3  },
+{ FoodCategory: "sweets", FoodItem: "Sugar", Cals_per100grams:387 , HealthyIndex:3  },
+{ FoodCategory: "bakery", FoodItem: "Flour", Cals_per100grams:364 , HealthyIndex:3  },
+{ FoodCategory: "nuts", FoodItem: "Almonds", Cals_per100grams:579 , HealthyIndex:3  },
+{ FoodCategory: "nuts", FoodItem: "Walnuts", Cals_per100grams:654 , HealthyIndex:3  },
+{ FoodCategory: "nuts", FoodItem: "Peanuts", Cals_per100grams:567 , HealthyIndex:3  },
+{ FoodCategory: "starches", FoodItem: "Potatoes", Cals_per100grams:77 , HealthyIndex:1  },
+{ FoodCategory: "starches", FoodItem: "Sweet Potato", Cals_per100grams:86 , HealthyIndex:1  }
+    ];
+
+    function updateFoodItems() {
+      const selectedCategories = Array.from(document.getElementById("categories").selectedOptions).map(option => option.value);
+      const foodItemsSelect = document.getElementById("foodItems");
+      foodItemsSelect.innerHTML = '';
+
+      selectedCategories.forEach(category => {
+        foodData.forEach(item => {
+          if (item.FoodCategory === category) {
+            const option = document.createElement("option");
+            option.value = item.FoodItem;
+            option.textContent = item.FoodItem;
+            foodItemsSelect.appendChild(option);
+          }
+        });
+      });
+
+      updateFoodQuantities();
+    }
+
+    function updateFoodQuantities() {
+      const selectedFoods = Array.from(document.getElementById("foodItems").selectedOptions).map(option => option.value);
+      const foodQuantitiesDiv = document.getElementById("foodQuantities");
+      foodQuantitiesDiv.innerHTML = '';
+
+      selectedFoods.forEach(food => {
+        const foodItem = foodData.find(item => item.FoodItem === food);
+        if (foodItem) {
+          const foodQuantityDiv = document.createElement("div");
+          foodQuantityDiv.classList.add("food-quantity");
+          foodQuantityDiv.innerHTML = `
+            <label for="${food}">${food} (grams):</label>
+            <input type="number" id="${food}" placeholder="Enter grams" data-cals="${foodItem.Cals_per100grams}">
+          `;
+          foodQuantitiesDiv.appendChild(foodQuantityDiv);
+        }
+      });
+    }
+
+    function calculateBMIandMaintenanceCalories() {
+  const weight = parseFloat(document.getElementById("weight").value);
+  const height = parseFloat(document.getElementById("height").value);
+  const age = parseInt(document.getElementById("age").value);
+  const gender = document.getElementById("gender").value;
+  const activityLevel = parseFloat(document.getElementById("activityLevel").value);
+  const goal = document.getElementById("goal").value;
+
+  const bmi = weight / Math.pow(height / 100, 2);
+  let bmr = gender === "male" ? 10 * weight + 6.25 * height - 5 * age + 5 : 10 * weight + 6.25 * height - 5 * age - 161;
+  let maintenanceCalories = bmr * activityLevel;
+  if (goal === "lose") maintenanceCalories -= maintenanceCalories * 0.2;
+  if (goal === "gain") maintenanceCalories += maintenanceCalories * 0.2;
+
+  let totalCalories = 0;
+  const selectedFoods = Array.from(document.getElementById("foodItems").selectedOptions).map(option => option.value);
+
+  if (selectedFoods.length === 0) {
+    document.getElementById("results").innerHTML = `
+      <h2>Results</h2>
+      <p><b>BMI:</b> ${bmi.toFixed(2)}</p>
+      <p><b>Maintenance Calories:</b> ${maintenanceCalories.toFixed(0)} kcal/day</p>
+      <p>No food products selected. Please choose some to see challenges.</p>
+    `;
+    return;
+  }
+
+  selectedFoods.forEach(food => {
+    const quantity = parseFloat(document.getElementById(food).value) || 0;
+    const foodItem = foodData.find(item => item.FoodItem === food);
+    if (foodItem) {
+      totalCalories += (foodItem.Cals_per100grams * quantity) / 100;
+    }
+  });
+
+  const calorieChallenge = goal === "lose" && totalCalories > 2000 ? 
+    "Try to reduce your calorie intake for weight loss." : 
+    goal === "gain" && totalCalories < 2500 ? 
+    "You need more calories to reach your goal!" : 
+    "Your calorie intake aligns with your goal!";
+  
+  const healthyChallenge = "Consider healthier food options for a balanced diet.";
+
+  document.getElementById("results").innerHTML = `
+    <h2>Results</h2>
+    <p><b>BMI:</b> ${bmi.toFixed(2)}</p>
+    <p><b>Maintenance Calories:</b> ${maintenanceCalories.toFixed(0)} kcal/day</p>
+    <p><b>Total Calories from Food:</b> ${totalCalories.toFixed(0)} kcal</p>
+    <h2>Challenges</h2>
+    <p>${calorieChallenge}</p>
+    <p>${healthyChallenge}</p>
+  `;
+
+
+      };
+
+      const calorieChallenge = goal === "lose" && totalCalories > 2000 ? 
+        "Try to reduce your calorie intake for weight loss." : 
+        goal === "gain" && totalCalories < 2500 ? 
+        "You need more calories to reach your goal!" : 
+        "Your calorie intake aligns with your goal!";
+      
+      const healthyChallenge = healthyIndex < 5 ? 
+        "Try to choose healthier options!" : 
+        "Great job! You have a balanced diet.";
+
+      document.getElementById("results").innerHTML = `
+        <h2>Results</h2>
+        <p><b>BMI:</b> ${bmi.toFixed(2)}</p>
+        <p><b>Maintenance Calories:</b> ${maintenanceCalories.toFixed(0)} kcal/day</p>
+        <p><b>Total Calories from Food:</b> ${totalCalories.toFixed(0)} kcal</p>
+        <h2>Challenges</h2>
+        <p>${calorieChallenge}</p>
+        <p>${healthyChallenge}</p>
+      `;
+    
+  </script>
+</body>
+</html>
